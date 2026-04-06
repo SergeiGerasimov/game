@@ -152,7 +152,7 @@
     </style>
 </head>
 <body>
-
+<audio id="bg-music" src="background_space.mp3" loop></audio>
 <div id="game-container">
     <div class="hud">
         <div id="status-text">СИСТЕМА: ОЖИДАНИЕ</div>
@@ -199,6 +199,9 @@
     const victoryContent = document.getElementById('victory-content');
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
+    
+    // Аудио элемент
+    const bgMusic = document.getElementById('bg-music');
 
     // Состояния игры
     let progress = 0;
@@ -234,6 +237,11 @@
 
     function startGame() {
         if (!imagesLoaded) return;
+        
+        // ЗАПУСК МУЗЫКИ
+        bgMusic.volume = 0.4; // Громкость 40%
+        bgMusic.play().catch(e => console.log("Музыка ожидает взаимодействия"));
+
         overlay.classList.add('hidden');
         gameActive = true;
         isWon = false;
@@ -244,9 +252,12 @@
     }
 
     function resetGame() {
+        // Сбрасываем музыку в начало при рестарте (опционально)
+        bgMusic.currentTime = 0;
+        
         victoryContent.classList.add('hidden');
         startContent.classList.remove('hidden');
-        // Обнуляем звезды (перезапускаем анимацию)
+        
         const stars = document.querySelectorAll('.html-star');
         stars.forEach(star => star.style.animation = 'none'); 
         setTimeout(() => {
@@ -258,7 +269,6 @@
     }
 
     function updateSignal() {
-        // Ускоренное движение спутника
         if (Math.random() > 0.92) {
             signal.targetX += (Math.random() - 0.5) * 380;
             signal.targetY += (Math.random() - 0.5) * 380;
@@ -270,7 +280,6 @@
         signal.x += (signal.targetX - signal.x) * 0.055; 
         signal.y += (signal.targetY - signal.y) * 0.055;
 
-        // Быстрая пульсация зоны
         signal.pulseTimer += 0.08;
         signal.currentRadius = signal.baseRadius + Math.sin(signal.pulseTimer) * 6;
     }
@@ -281,34 +290,31 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         updateSignal();
         
-        // Рисуем спутник
         ctx.drawImage(satelliteImg, signal.x - 40, signal.y - 40, 80, 80);
 
         const dist = Math.hypot(mouse.x - signal.x, mouse.y - signal.y);
 
         if (dist < signal.currentRadius) {
-            progress += 0.45; // Скорость зарядки
+            progress += 0.45;
             statusText.innerText = "СТАБИЛИЗАЦИЯ: " + Math.floor(progress) + "%";
             statusText.style.color = "white";
             ctx.strokeStyle = "white";
             ctx.shadowBlur = 15;
             ctx.shadowColor = "white";
         } else {
-            if (progress > 0) progress -= 0.12; // Скорость потери
+            if (progress > 0) progress -= 0.12;
             statusText.innerText = "СИГНАЛ НЕСТАБИЛЕН";
-            statusText.style.color = "#e94560"; // Красный при потере
+            statusText.style.color = "#e94560";
             ctx.strokeStyle = "#00ffcc";
             ctx.shadowBlur = 0;
         }
 
-        // Пульсирующие кольца сигнала
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(signal.x, signal.y, signal.currentRadius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.shadowBlur = 0;
 
-        // Красный прицел
         ctx.strokeStyle = "#e94560";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -328,6 +334,9 @@
     }
 
     function showVictory() {
+        // ОСТАНОВКА МУЗЫКИ ПРИ ПОБЕДЕ (опционально)
+        bgMusic.pause();
+        
         overlay.classList.remove('hidden');
         startContent.classList.add('hidden');
         victoryContent.classList.remove('hidden');
@@ -335,6 +344,5 @@
         statusText.style.color = "#FFD700";
     }
 </script>
-
 </body>
 </html>
